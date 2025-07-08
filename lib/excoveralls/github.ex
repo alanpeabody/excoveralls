@@ -26,8 +26,9 @@ defmodule ExCoveralls.Github do
       flag_name: options[:flagname],
       git: git_info()
     }
-    |> Map.merge(job_data())
-    |> Jason.encode!
+    |> Map.merge(job_data(options[:run_attempt]))
+    |> IO.inspect(label: :json)
+    |> Jason.encode!()
   end
 
   defp get_env(env) do
@@ -35,13 +36,13 @@ defmodule ExCoveralls.Github do
     |> System.get_env
   end
 
-  defp job_data() do
-    get_env("GITHUB_EVENT_NAME")
-    |> case do
+  defp job_data(run_attempt) do
+    case get_env("GITHUB_EVENT_NAME") do
       "pull_request" ->
         %{
           service_pull_request: get_pr_id(),
-          service_job_id: "#{get_sha("pull_request")}-PR-#{get_pr_id()}",
+          service_job_id:
+            "#{get_sha("pull_request")}-PR-#{get_pr_id()}#{add_run_attempt(run_attempt)}"
         }
       event ->
         %{service_job_id: get_sha(event)}
@@ -51,7 +52,14 @@ defmodule ExCoveralls.Github do
   defp get_pr_id do
     event_info()
     |> Map.get("number")
-    |> Integer.to_string
+    |> Integer.to_string()
+  end
+
+  defp add_run_attempt(nil), do: ""
+  defp add_run_attempt(""), do: ""
+
+  defp add_run_attempt(run_attempt) do
+    "-RUN-#{run_attempt}"
   end
 
   defp get_committer_name do
