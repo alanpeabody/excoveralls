@@ -72,7 +72,7 @@ defmodule Mix.Tasks.Coveralls do
 
       ExCoveralls.StatServer.get
       |> MapSet.to_list
-      |> ExCoveralls.analyze(type, options)
+      |> ExCoveralls.analyze(type, all_options)
     end
   end
 
