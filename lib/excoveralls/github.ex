@@ -27,7 +27,6 @@ defmodule ExCoveralls.Github do
       git: git_info()
     }
     |> Map.merge(job_data(options[:run_attempt]))
-    |> IO.inspect(label: :json)
     |> Jason.encode!()
   end
 
