@@ -26,23 +26,24 @@ defmodule ExCoveralls.Github do
       flag_name: options[:flagname],
       git: git_info()
     }
-    |> Map.merge(job_data(options[:run_attempt]))
+    |> Map.merge(job_data())
+    |> maybe_add_service_attempt(options[:run_attempt])
     |> Jason.encode!()
   end
 
   defp get_env(env) do
     env
-    |> System.get_env
+    |> System.get_env()
   end
 
-  defp job_data(run_attempt) do
+  defp job_data() do
     case get_env("GITHUB_EVENT_NAME") do
       "pull_request" ->
         %{
           service_pull_request: get_pr_id(),
-          service_job_id:
-            "#{get_sha("pull_request")}-PR-#{get_pr_id()}#{add_run_attempt(run_attempt)}"
+          service_job_id: "#{get_sha("pull_request")}-PR-#{get_pr_id()}"
         }
+
       event ->
         %{service_job_id: get_sha(event)}
     end
@@ -54,11 +55,11 @@ defmodule ExCoveralls.Github do
     |> Integer.to_string()
   end
 
-  defp add_run_attempt(nil), do: ""
-  defp add_run_attempt(""), do: ""
+  defp maybe_add_service_attempt(map, nil), do: map
+  defp maybe_add_service_attempt(map, ""), do: map
 
-  defp add_run_attempt(run_attempt) do
-    "-RUN-#{run_attempt}"
+  defp maybe_add_service_attempt(map, run_attempt) do
+    Map.put(map, :service_attempt, run_attempt)
   end
 
   defp get_committer_name do

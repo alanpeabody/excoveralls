@@ -70,6 +70,7 @@ defmodule ExCoveralls.GithubTest do
 
   test "when run attempt is provided" do
     {:ok, payload} = Jason.decode(Github.generate_json(@source_info, %{run_attempt: "2"}))
-    assert(payload["service_job_id"] == "7c90516a3ac9f43ab6cf46ec5668b4430a3af103-PR-206-RUN-2")
+    assert(payload["service_job_id"] == "7c90516a3ac9f43ab6cf46ec5668b4430a3af103-PR-206")
+    assert(payload["service_attempt"] == "2")
   end
 end
