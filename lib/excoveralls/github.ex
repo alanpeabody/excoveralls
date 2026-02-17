@@ -64,15 +64,15 @@ defmodule ExCoveralls.Github do
 
   defp get_committer_name do
     event_info()
-    |> Map.get("sender")
-    |> Map.get("login")
+    |> Map.get("sender", %{})
+    |> Map.get("login", "unknown")
   end
 
   defp get_sha("pull_request") do
     event_info()
-    |> Map.get("pull_request")
-    |> Map.get("head")
-    |> Map.get("sha")
+    |> Map.get("pull_request", %{})
+    |> Map.get("head", %{})
+    |> Map.get("sha", %{})
   end
 
   defp get_sha(_) do
