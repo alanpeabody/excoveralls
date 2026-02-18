@@ -72,7 +72,7 @@ defmodule ExCoveralls.Github do
     event_info()
     |> Map.get("pull_request", %{})
     |> Map.get("head", %{})
-    |> Map.get("sha", %{})
+    |> Map.get("sha")
   end
 
   defp get_sha(_) do
@@ -97,6 +97,7 @@ defmodule ExCoveralls.Github do
 
   defp git_info do
     event = get_env("GITHUB_EVENT_NAME")
+
     %{
       head: %{
         id: get_sha(event),

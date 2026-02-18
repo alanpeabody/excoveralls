@@ -5,11 +5,9 @@ defmodule ExCoveralls.GithubTest do
 
   @content "defmodule Test do\n  def test do\n  end\nend\n"
   @counts [0, 1, nil, nil]
-  @source_info [%{name: "test/fixtures/test.ex",
-                  source: @content,
-                  coverage: @counts,
-                  warnings: []
-               }]
+  @source_info [
+    %{name: "test/fixtures/test.ex", source: @content, coverage: @counts, warnings: []}
+  ]
 
   setup do
     # No additional context
@@ -61,7 +59,6 @@ defmodule ExCoveralls.GithubTest do
   test "generate from env vars" do
     {:ok, payload} = Jason.decode(Github.generate_json(@source_info))
 
-
     assert(payload["repo_token"] == "token")
     assert(payload["service_job_id"] == "7c90516a3ac9f43ab6cf46ec5668b4430a3af103-PR-206")
     assert(payload["service_name"] == "github")
@@ -72,5 +69,33 @@ defmodule ExCoveralls.GithubTest do
     {:ok, payload} = Jason.decode(Github.generate_json(@source_info, %{run_attempt: "2"}))
     assert(payload["service_job_id"] == "7c90516a3ac9f43ab6cf46ec5668b4430a3af103-PR-206")
     assert(payload["service_attempt"] == "2")
+  end
+
+  describe "schedule event (nightly cron)" do
+    setup do
+      System.put_env("GITHUB_EVENT_PATH", "test/fixtures/github_event_schedule.json")
+      System.put_env("GITHUB_EVENT_NAME", "schedule")
+      System.put_env("GITHUB_SHA", "abc123def456")
+      System.put_env("GITHUB_REF", "refs/heads/main")
+      :ok
+    end
+
+    test "handles missing sender gracefully" do
+      {:ok, payload} = Jason.decode(Github.generate_json(@source_info))
+
+      assert payload["repo_token"] == "token"
+      assert payload["service_name"] == "github"
+      assert payload["service_job_id"] == "abc123def456"
+      assert payload["service_pull_request"] == nil
+      assert payload["git"]["head"]["committer_name"] == "unknown"
+      assert payload["git"]["head"]["id"] == "abc123def456"
+      assert payload["git"]["branch"] == "refs/heads/main"
+    end
+
+    test "uses GITHUB_SHA for commit id" do
+      {:ok, payload} = Jason.decode(Github.generate_json(@source_info))
+
+      assert payload["git"]["head"]["id"] == "abc123def456"
+    end
   end
 end

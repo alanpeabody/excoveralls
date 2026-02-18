@@ -1,0 +1,7 @@
+{
+  "_comment": "Minimal event payload for scheduled (cron) workflows - no sender, no PR data",
+  "schedule": "0 0 * * *",
+  "repository": {
+    "full_name": "owner/repo"
+  }
+}
